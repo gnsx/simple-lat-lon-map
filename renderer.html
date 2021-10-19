@@ -1,73 +1,96 @@
 <!DOCTYPE html>
 <html>
-   <head>
-      <meta charset=utf-8 />
-      <title>Leaflet Label</title>
-      <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-      <script src='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.js'></script>
-      <link href='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.css' rel='stylesheet' />
-      <style>
-         body { margin:0; padding:0; }
-         #map { position:relative;height:700px ;top:0; bottom:0; width:100%; }
-      </style>
-      <script>
-         $(window).resize(function() {
-            $('#map').height($(window).height() / 1.1);
-         });
-         $(window).trigger('resize');
-      </script>
-      <script> $(window).ready(function() { $('#map').height($(window).height() / 1.1); }); </script>
-   </head>
-   <body>
-      <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-label/v0.2.1/leaflet.label.js'></script>
-      <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-label/v0.2.1/leaflet.label.css' rel='stylesheet' />
-      <div id='map'></div>
-      <input type='file' accept='text/plain' onchange='openFile(event)'><br>
-      <img id='output'>
-      <script>
-         L.mapbox.accessToken = 'pk.eyJ1IjoicGVnYXN1cyIsImEiOiJjaWd1bjlvdmIwN3Izd3dtMDluYW1lMGlrIn0.QTR6xEpvu5bsXGeYn5jgjg';
-         var map = L.mapbox.map('map', 'mapbox.streets', {
-             center: [21.162672, 79.087958], 
-             zoom: 5
-         });
-         
-         var openFile = function(event) {
-         var input = event.target;
-         var reader = new FileReader();
-         reader.onload = function(){
-         
-           var text = reader.result;
-           var line_points = [];
-         
-           var res = text.split("\n");
-         console.log("Length of file " + res.length);
-           for(i=0;i<res.length;i++)
-           {
-         console.log("Pass" + i );
-             if(res[i]!="")
-             {
-         
-         
-         
-             var inside_array = res[i].split(",");
-         
-         var arr1 = new L.LatLng(inside_array[0], inside_array[1]);
-         console.log("Lat:" + inside_array[0] + "Lon " + inside_array[1]);
-             line_points.push(arr1);
-         
-             }
-             
-           }
-           var polyline_options = {  color: '#000' };
-         L.polyline(line_points).addTo(map);
-         
-         };
-         reader.readAsText(input.files[0]);
-         
-         
-         
-         };
-      </script>
-   </body>
+
+  <head>
+    <title>Simple GPS Renderer</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #map {
+        position: relative;
+        height: 600px;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+
+    </style>
+    <script>
+      $(window).resize(function() {
+        $('#map').height($(window).height() / 1.1);
+      });
+      $(window).trigger('resize');
+
+    </script>
+    <script>
+      $(window).ready(function() {
+        $('#map').height($(window).height() / 1.1);
+      });
+
+    </script>
+
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <input type='file' accept='text/csv' onchange='openFile(event)'><br>
+    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&v=weekly&channel=2" async></script>
+
+    <script>
+      var line_points = [];
+      var openFile = function(event) {
+        var input = event.target;
+        var reader = new FileReader();
+        reader.onload = function() {
+          var text = reader.result;
+          var res = text.split("\n");
+          for (i = 1; i < res.length; i++) {
+            if (res[i] != "") {
+              var inside_array = res[i].split(",");
+              var arr1 = {
+                "lat": parseFloat(inside_array[5]),
+                "lng": parseFloat(inside_array[6])
+              };
+              //console.log("Lat:" + inside_array[5] + "Lon " + inside_array[6]);
+              line_points.push(arr1);
+            }
+          }
+          initMap()
+        };
+        reader.readAsText(input.files[0]);
+      };
+
+      function initMap() {
+        const map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 3,
+          center: {
+            lat: 0,
+            lng: -180
+          },
+          mapTypeId: "terrain",
+        });
+        map.setZoom(5);
+        map.setCenter({
+          lat: 22.197032,
+          lng: 78.442722
+        });
+        const flightPath = new google.maps.Polyline({
+
+          path: line_points,
+          geodesic: true,
+          strokeColor: "#FF0000",
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+        });
+        flightPath.setMap(map);
+      }
+    </script>
+  </body>
 </html>
