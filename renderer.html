@@ -8,19 +8,37 @@
 
     <style>
       body {
-        margin: 0;
-        padding: 0;
+        margin: 10;
+        padding: 10;
       }
 
       #map {
         position: relative;
-        height: 600px;
+        height: 100%;
         top: 0;
         bottom: 0;
         width: 100%;
       }
 
     </style>
+	
+	<style>
+.container {
+  top: 5;
+  height: 30px;
+  position: relative;
+}
+
+.vertical-center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 45%;
+ 
+}
+</style>
+	
+	
     <script>
       $(window).resize(function() {
         $('#map').height($(window).height() / 1.1);
@@ -39,7 +57,11 @@
 
   <body>
     <div id="map"></div>
-    <input type='file' accept='text/csv' onchange='openFile(event)'><br>
+    <div class="container"> 
+		<div class="vertical-center">
+			<input type='file' accept='text/csv' onchange='openFile(event)' class='container'><br>
+		</div>
+	</div>
     <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&v=weekly&channel=2" async></script>
 
@@ -51,12 +73,13 @@
         reader.onload = function() {
           var text = reader.result;
           var res = text.split("\n");
-          for (i = 1; i < res.length; i++) {
+          line_points = [];
+		  for (i = 1; i < res.length; i++) {
             if (res[i] != "") {
               var inside_array = res[i].split(",");
               var arr1 = {
-                "lat": parseFloat(inside_array[5]),
-                "lng": parseFloat(inside_array[6])
+                "lat": parseFloat(inside_array[0]),
+                "lng": parseFloat(inside_array[1])
               };
               //console.log("Lat:" + inside_array[5] + "Lon " + inside_array[6]);
               line_points.push(arr1);
@@ -76,12 +99,31 @@
           },
           mapTypeId: "terrain",
         });
-        map.setZoom(5);
+        map.setZoom(12);
         map.setCenter({
-          lat: 22.197032,
-          lng: 78.442722
+          lat: line_points[line_points.length/2].lat,
+          lng: line_points[line_points.length/2].lng
         });
-        const flightPath = new google.maps.Polyline({
+		console.log(line_points);
+        
+		//Start pointer
+		var startMarker = new google.maps.MarkerImage("http://www.googlemapsmarkers.com/v1/009900/");
+		var marker = new google.maps.Marker({
+            position: line_points[0],
+            icon: startMarker,
+            map: map
+        });
+		
+		//End pointer
+		var endMarker = new google.maps.MarkerImage("http://www.googlemapsmarkers.com/v1/ff0000/");
+		var marker = new google.maps.Marker({
+            position: line_points[line_points.length-1],
+            icon: endMarker,
+            map: map
+        });
+		
+		
+		const flightPath = new google.maps.Polyline({
 
           path: line_points,
           geodesic: true,
